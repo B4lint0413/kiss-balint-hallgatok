@@ -1,0 +1,500 @@
+openapi: "3.1.0"
+info:
+  title: Hallgatók API
+  version: 1.0.0
+
+servers:
+  - url: http://backend.vm1.test
+    description: VM1 backend
+  - url: http://backend.vm2.test
+    description: VM2 backend
+  - url: http://backend.vm3.test
+    description: VM3 backend
+  - url: http://backend.vm4.test
+    description: VM4 backend
+  - url: http://backend.vm5.test
+    description: VM5 backend
+
+paths:
+  /api/students:
+    get:
+      tags:
+       - Students
+      summary: Hallgatók listájának lekérése
+      description: Az `index` visszaadja a hallgatók adatait a minta szerint
+      responses:
+        '200':
+          description: Hallgatók listája
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Student'
+              example:
+                data:
+                  - neptun_code: ABC123
+                    name: Nagy László
+                    training:
+                      id: 3
+                      name: tanárképzés
+                      level: osztatlan
+                      terms: 10
+                    admission: 2021-09-01
+                    term: 5
+                    active_term: true
+                  - neptun_code: DEF456
+                    name: Kovács Anna
+                    training:
+                      id: 7
+                      name: programtervező
+                      level: mester
+                      terms: 4
+                    admission: 2023-02-01
+                    term: 2
+                    active_term: true
+
+    post:
+      tags:
+       - Students
+      summary: Új hallgató létrehozása
+      description: A `store` feladata, hogy a JSON-ként kapott adatokat validálja, majd eltárolja az adatbázisba. A létrehozott új rekordot adja is vissza a minta szerint!
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+            example:
+              name: Chopped Chin
+              training_id: 1
+              admission: 2025-01-01
+              term: 1
+              active_term: true
+      responses:
+        '201':
+          description: Hallgató létrehozva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Student'
+              example:
+                data:
+                  neptun_code: LOTAFD
+                  name: Chopped Chin
+                  training:
+                    id: 1
+                    name: programtervező
+                    level: alap
+                    terms: 6
+                  admission: 2025-01-01
+                  term: 1
+                  active_term: true
+        '422':
+          description: Érvénytelen adatok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+  /api/students/{student}:
+    get:
+      tags:
+       - Students
+      summary: Egy adott hallgató lekérése
+      description: A `show` a hallgató Neptun kódja alapján keresse meg a megfelelő rekordot, és adja vissza az adatokat a minta szerint
+      parameters:
+        - name: student
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 6
+      responses:
+        '200':
+          description: Egy adott hallgató
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Student'
+              example:
+                data:
+                  neptun_code: ABC123
+                  name: Nagy László
+                  training:
+                    id: 3
+                    name: tanárképzés
+                    level: osztatlan
+                    terms: 10
+                  admission: 2021-09-01
+                  term: 5
+                  active_term: true
+    put:
+      tags:
+       - Students
+      summary: Egy adott hallgató frissítése
+      description: Az `update` feladata, hogy a JSON-ként kapott adatokat validálja, majd tejes egészében cserélje le az adatbázisban található adatokat. A módosított rekordot adja is vissza a minta szerint!
+      parameters:
+        - name: student
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+            example:
+              name: Nagy László Áron
+              training_id: 3
+              admission: 2021-09-01
+              term: 6
+              active_term: false
+      responses:
+        '200':
+          description: Hallgató frissítve
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Student'
+              example:
+                data:
+                  neptun_code: ABC123
+                  name: Nagy László Áron
+                  training:
+                    id: 3
+                    name: tanárképzés
+                    level: osztatlan
+                    terms: 10
+                  admission: 2021-09-01
+                  term: 6
+                  active_term: false
+        '422':
+          description: Érvénytelen adatok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+    delete:
+      tags:
+       - Students
+      summary: Egy adott hallgató törlése
+      description: A `destroy` törölje ki a megfelelő rekordot az adatbázisból a `neptun_code` alapján.
+      parameters:
+        - name: student
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 6
+      responses:
+        '204':
+          description: Hallgató törölve
+        '404':
+          description: Nem található a keresett elem
+        '500':
+          description: Szerver hiba
+  /api/trainings:
+    get:
+      tags:
+       - Trainings
+      summary: Képzések listájának lekérése
+      description: Az `index` visszaadja a képzések adatait a minta szerint.
+      responses:
+        '200':
+          description: Képzések listája
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Training'
+              example:
+                data:
+                  - id: 1
+                    name: tanárképzés
+                    level: osztatlan
+                    terms: 10
+                    students:
+                    - neptun_code: ABC123
+                      name: Nagy László
+                      admission: 2021-09-01
+                      term: 5
+                      active_term: true
+                    - neptun_code: DEF456
+                      name: Kovács Anna
+                      admission: 2023-02-01
+                      term: 2
+                      active_term: true
+                  - id: 2
+                    name: programtervező
+                    level: alap
+                    terms: 6
+                    students:
+                    - neptun_code: BAPIEGY
+                      name: Egypt Property
+                      admission: 2024-09-01
+                      term: 1
+                      active_term: true
+                    - neptun_code: EYEORA
+                      name: Eye of Rah
+                      admission: 2023-02-01
+                      term: 2
+                      active_term: false
+
+    post:
+      tags:
+       - Trainings
+      summary: Új képzés létrehozása
+      description: A `store` feladata, hogy a JSON-ként kapott adatokat validálja, majd eltárolja az adatbázisba. A létrehozott új rekordot adja is vissza a minta szerint!
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingInput'
+            example:
+              name: sportmenedzser
+              level: mester
+              terms: 4
+      responses:
+        '201':
+          description: Képzés létrehozva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Training'
+              example:
+                data:
+                  id: 3
+                  name: sportmenedzser
+                  level: mester
+                  terms: 4
+                  students:
+                    - neptun_code: BAPIEGY
+                      name: Egypt Property
+                      admission: 2024-09-01
+                      term: 1
+                      active_term: true
+        '422':
+          description: Érvénytelen adatok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+
+  /api/trainings/{training}:
+    get:
+      tags:
+       - Trainings
+      summary: Egy adott képzés lekérése
+      description: A `show` a képzés azonosítója alapján keresse meg a megfelelő rekordot, és adja vissza az adatokat a minta szerint.
+      parameters:
+        - name: training
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Egy adott képzés
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Training'
+              example:
+                data:
+                  id: 1
+                  name: tanárképzés
+                  level: osztatlan
+                  terms: 10
+                  students:
+                    - neptun_code: ABC123
+                      name: Nagy László
+                      admission: 2021-09-01
+                      term: 5
+                      active_term: true
+                    - neptun_code: DEF456
+                      name: Kovács Anna
+                      admission: 2023-02-01
+                      term: 2
+                      active_term: true
+    put:
+      tags:
+       - Trainings
+      summary: Egy adott képzés frissítése
+      description: Az `update` feladata, hogy a JSON-ként kapott adatokat validálja, majd tejes egészében cserélje le az adatbázisban található adatokat. A módosított rekordot adja is vissza a minta szerint!
+      parameters:
+        - name: training
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingInput'
+            example:
+              name: sportmenedzser
+              level: mester
+              terms: 4
+      responses:
+        '200':
+          description: Képzés frissítve
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Training'
+              example:
+                data:
+                  id: 3
+                  name: sportmenedzser
+                  level: mester
+                  terms: 4
+                  students:
+                    - neptun_code: BAPIEGY
+                      name: Egypt Property
+                      admission: 2024-09-01
+                      term: 1
+                      active_term: true
+        '422':
+          description: Érvénytelen adatok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  errors:
+                    type: object
+    delete:
+      tags:
+       - Trainings
+      summary: Egy adott képzés törlése
+      description: A `destroy` törölje ki a megfelelő rekordot az adatbázisból a `training` azonosító alapján.
+      parameters:
+        - name: training
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Képzés törölve
+        '404':
+          description: Nem található a keresett elem
+        '500':
+          description: Szerver hiba
+components:
+  schemas:
+    Student:
+      type: object
+      properties:
+        neptun_code:
+          type: string
+          maxLength: 6
+        name:
+          type: string
+          maxLength: 20
+        training:
+          $ref: '#/components/schemas/Training'
+        admission:
+          type: string
+          format: date
+        term:
+          type: integer
+          nullable: true
+        active_term:
+          type: boolean
+    StudentInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 20
+        training_id:
+          type: integer
+        admission:
+          type: string
+          format: date
+        term:
+          type: integer
+          nullable: true
+        active_term:
+          type: boolean
+    Training:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          maxLength: 20
+        level:
+          type: string
+          maxLength: 10
+        terms:
+          type: integer
+        students:
+          type: array
+          items:
+            $ref: '#/components/schemas/Student'
+    TrainingInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 20
+        level:
+          type: string
+          maxLength: 10
+        terms:
+          type: integer
+    
+
+
+        
