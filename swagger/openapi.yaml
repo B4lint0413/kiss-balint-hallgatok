@@ -4,6 +4,8 @@ info:
   version: 1.0.0
 
 servers:
+  - url: http://backend.localhost
+    description: Localhost backend
   - url: http://backend.vm1.test
     description: VM1 backend
   - url: http://backend.vm2.test
